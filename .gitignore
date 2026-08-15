@@ -1,0 +1,68 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.db
+*.sqlite
+*.sqlite3
+
+node_modules
+dist
+dist-ssr
+*.local
+
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Backend
+__pycache__/
+*.pyc
+backend/venv/
+backend/*.db
+backend/*.sqlite3
+.env
+*.bak
+backend/static_reports/
+
+
+.env.save
+backend/.env.authmode-backup
+supabase/.temp/
+
+# Secrets / environment files
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Python environments / caches
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local / legacy clinic data
+backend/database/sqlite_backup.json
+server/data/consultations.json
+
+# Local/demo clinic data
+backend/seed.py
+src/data/patients.js
+backend/database/sqlite_backup.json
+server/data/consultations.json

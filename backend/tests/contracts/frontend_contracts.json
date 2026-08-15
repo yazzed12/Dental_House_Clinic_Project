@@ -1,0 +1,49 @@
+{
+  "patient_response_fields": [
+    "id",
+    "name",
+    "age",
+    "phone",
+    "gender",
+    "status",
+    "condition",
+    "lastVisit",
+    "bloodType"
+  ],
+  "appointment_response_fields": [
+    "id",
+    "patient_id",
+    "patient",
+    "date",
+    "time",
+    "type",
+    "status",
+    "condition"
+  ],
+  "appointment_type_normalization": {
+    "check_or_normal": "normal",
+    "urgent_or_emergency": "urgent",
+    "follow": "follow_up",
+    "consult": "consultation",
+    "empty_or_unknown": "consultation"
+  },
+  "appointment_status_normalization": {
+    "accepted": [
+      "pending",
+      "scheduled",
+      "confirmed",
+      "completed",
+      "cancelled",
+      "no_show"
+    ],
+    "empty_or_unknown": "pending"
+  },
+  "ai_chat_response": {
+    "response": "string"
+  },
+  "report_workflow": [
+    "POST /api/ai/generate-report -> {status, report}",
+    "POST /api/ai/humanize-report -> {status, humanized_report}",
+    "POST /api/reports -> {id, patient_id, status, tooth_id, created_at}"
+  ]
+}

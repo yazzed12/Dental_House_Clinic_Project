@@ -1,0 +1,65 @@
+method	path	authentication	roles
+POST	/api/auth/login	public
+POST	/api/auth/register	public
+POST	/api/auth/verify	public
+POST	/api/auth/logout	required
+POST	/api/auth/forgot-password	public
+POST	/api/auth/reset-password	public
+GET	/api/auth/me	required
+GET	/appointments/today	required
+GET	/api/notifications	required
+PATCH	/api/notifications/{notification_id}/read	required
+GET	/api/patients	required
+POST	/api/patients	required	admin,doctor,receptionist
+PUT	/api/patients/{patient_id}	required	admin,doctor,receptionist
+GET	/api/patients/{patient_id}	required
+DELETE	/api/patients/{patient_id}	required	admin,doctor
+GET	/api/appointments	required
+POST	/api/appointments	required	admin,doctor,receptionist
+PUT	/api/appointments/{appointment_id}/status	required	admin,doctor,receptionist
+PUT	/api/appointments/{appointment_id}	required	admin,doctor,receptionist
+DELETE	/api/appointments/{appointment_id}	required	admin,doctor,receptionist
+GET	/api/doctors	required
+GET	/api/receptionists	required
+POST	/api/staff	required	admin
+PUT	/api/staff/{user_id}	required	admin
+DELETE	/api/staff/{user_id}	required	admin
+GET	/api/clinic-procedures	required	doctor
+POST	/api/clinic-procedures	required	doctor
+PATCH	/api/clinic-procedures/{procedure_id}	required	doctor
+GET	/api/consultations/{patient_id}/procedures	required	doctor
+PUT	/api/consultations/{patient_id}/procedures	required	doctor
+GET	/api/finance/billing	required	doctor
+GET	/api/finance/patient-summaries	required	doctor
+GET	/api/finance/patients/{patient_id}/history	required	doctor
+GET	/api/finance/patients/{patient_id}/outstanding	required	doctor
+POST	/api/finance/consultations/{consultation_id}/payments	required	doctor
+POST	/api/finance/payments/{payment_id}/corrections	required	doctor
+GET	/api/consultations/{patient_id}	required	admin,doctor
+POST	/api/consultations/{patient_id}	required	admin,doctor
+GET	/api/consultations/{patient_id}/history	required	admin,doctor
+POST	/api/appointments/finish-by-patient/{patient_id}	required	admin,doctor
+PUT	/appointments/{appointment_id}/finish	required	admin,doctor
+GET	/api/doctor/consultations/history	required	admin,doctor
+POST	/api/ai/generate-report	required	admin,doctor
+POST	/api/ai/humanize-report	required	admin,doctor
+POST	/api/reports	required	admin,doctor
+GET	/api/reports/patient/{patient_id}	required
+GET	/api/reports/{report_id}/download	required
+PUT	/api/reports/{report_id}	required	admin,doctor
+GET	/dashboard	required
+GET	/api/dashboard	required
+GET	/logs	required
+GET	/api/records	required
+GET	/api/appointment-conditions	required
+POST	/api/appointment-conditions	required	admin,doctor,receptionist
+GET	/api/ai/insights	required
+POST	/api/ai/diagnosis	required
+POST	/api/ai/chat	required
+GET	/	public
+GET	/api/settings/clinic	required	admin,doctor
+PUT	/api/settings/clinic	required	admin,doctor
+GET	/api/settings/profile	required
+PUT	/api/settings/profile	required
+GET	/api/clinical/symptoms	required
+POST	/api/clinical/symptoms	required
