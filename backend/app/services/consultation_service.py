@@ -22,6 +22,27 @@ class ConsultationService:
         self.logger = logger
 
     @staticmethod
+    def _serialize_prescription(prescription):
+        if not prescription:
+            return None
+        return {
+            "id": prescription.id,
+            "consultationId": prescription.consultation_id,
+            "status": prescription.status,
+            "version": prescription.version,
+            "approvedAt": prescription.approved_at.isoformat() if prescription.approved_at else None,
+            "items": [{
+                "id": item.id, "medicationId": item.medication_id,
+                "position": item.position, "brandName": item.brand_name_snapshot,
+                "genericName": item.generic_name_snapshot, "strength": item.strength_snapshot,
+                "dosageForm": item.dosage_form_snapshot, "route": item.route_snapshot,
+                "dose": item.dose_snapshot, "frequency": item.frequency_snapshot,
+                "duration": item.duration_snapshot, "instructions": item.instructions_snapshot,
+                "doctorNotes": item.doctor_notes_snapshot,
+            } for item in sorted(prescription.items, key=lambda row: row.position)],
+        }
+
+    @staticmethod
     def _serialize_last_note(consultation):
         if not consultation:
             return None
@@ -228,10 +249,14 @@ class ConsultationService:
             raise HTTPException(status_code=500, detail="Internal server error")
 
     def get_patient_history(self, db: Session, patient_id) -> list[dict]:
-        return [
-            self._serialize_consultation(consultation)
-            for consultation in self.repository.get_history(db, patient_id)
-        ]
+        result = []
+        for consultation in self.repository.get_history(db, patient_id):
+            item = self._serialize_consultation(consultation)
+            item["prescription"] = self._serialize_prescription(
+                self.repository.get_approved_prescription(db, consultation.id)
+            )
+            result.append(item)
+        return result
 
     def get_doctor_history(self, db: Session, user) -> list[dict]:
         reports = self.repository.get_doctor_history(db, user.id)
@@ -278,6 +303,10 @@ class ConsultationService:
                             for row in self.repository.list_procedures(db, consultation.id)
                         ]
                         if consultation else []
+                    ),
+                    "prescription": self._serialize_prescription(
+                        self.repository.get_approved_prescription(db, consultation.id)
+                        if consultation else None
                     ),
                 }
             )

@@ -23,6 +23,7 @@ if str(BACKEND_DIR) not in sys.path:
 os.environ["ENVIRONMENT"] = "test"
 os.environ["REQUIRE_POSTGRES"] = "false"
 os.environ["DATABASE_URL"] = "sqlite+pysqlite:///:memory:"
+os.environ["AUTH_MODE"] = "legacy"
 os.environ.setdefault("SECRET_KEY", "characterization-tests-only-secret")
 
 import main as active_main  # noqa: E402  (environment must be set first)

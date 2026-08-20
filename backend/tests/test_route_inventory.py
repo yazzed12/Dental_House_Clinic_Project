@@ -15,8 +15,8 @@ class RouteInventoryCharacterizationTests(unittest.TestCase):
         actual = to_tsv(active_route_inventory())
         self.assertEqual(expected, actual)
 
-    def test_current_application_has_64_api_routes(self):
-        self.assertEqual(64, len(active_route_inventory()))
+    def test_current_application_has_74_api_routes(self):
+        self.assertEqual(74, len(active_route_inventory()))
 
     def test_unauthenticated_medical_endpoint_snapshot_matches_inventory(self):
         inventory = active_route_inventory()

@@ -13,6 +13,7 @@ import { decimalToCents, formatMoney } from '../../config/money';
 import FinalReportSnapshot from '../../components/consultation/FinalReportSnapshot.jsx';
 import MedicalReportMarkdown from '../../components/consultation/MedicalReportMarkdown.jsx';
 import ConsultationLabHistorySection from '../../components/consultation/ConsultationLabHistorySection.jsx';
+import PrescriptionHistorySection from '../../components/consultation/PrescriptionHistorySection.jsx';
 
 export default function ConsultationsHistory() {
   const [searchParams] = useSearchParams();
@@ -289,6 +290,7 @@ export function ExpandableConsultationCard({ report, isExpanded, onToggle, onUpd
 
           <div className="page-stack" style={{ gap: 32 }}>
             <ConsultationLabHistorySection labItems={report.labItems} labNote={report.labNote} />
+            <PrescriptionHistorySection prescription={report.prescription} />
             {isStructuredFinalized ? (
               <>
                 <FinalReportSnapshot snapshot={report.reportSnapshot} />

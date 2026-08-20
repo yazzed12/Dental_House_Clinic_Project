@@ -260,6 +260,12 @@ class Phase10CommonAITests(unittest.TestCase):
             format="json",
         )
 
+    def test_provider_uses_shared_runtime_configuration(self):
+        from app.core import config
+
+        self.assertIs(ollama_provider.OLLAMA_MODEL, config.OLLAMA_MODEL)
+        self.assertIs(ollama_provider.OLLAMA_BASE_URL, config.OLLAMA_BASE_URL)
+
 
 if __name__ == "__main__":
     unittest.main()

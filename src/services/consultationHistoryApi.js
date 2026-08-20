@@ -25,6 +25,9 @@ export const normalizeConsultationHistoryItem = item => ({
   ...item,
   labItems: Array.isArray(item?.labItems) ? item.labItems : [],
   labNote: typeof item?.labNote === 'string' ? item.labNote : null,
+  prescription: item?.prescription?.status === 'approved'
+    ? { ...item.prescription, items: Array.isArray(item.prescription.items) ? item.prescription.items : [] }
+    : null,
 });
 
 export function createConsultationHistoryService({

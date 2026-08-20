@@ -13,6 +13,7 @@ from app.repositories import (
     clinic_settings_repository,
     common_repository,
     consultation_repository,
+    medication_repository,
     notification_repository,
     patient_repository,
     report_repository,
@@ -90,6 +91,16 @@ class Phase3ModularRouteTests(unittest.TestCase):
             ("GET", "/api/consultations/{patient_id}"): "app.routers.consultations",
             ("POST", "/api/consultations/{patient_id}"): "app.routers.consultations",
             ("GET", "/api/consultations/{patient_id}/history"): "app.routers.consultations",
+            ("GET", "/api/medications"): "app.routers.medications",
+            ("POST", "/api/medications/custom"): "app.routers.medications",
+            ("GET", "/api/medications/{medication_id}/effective-preset"): "app.routers.medications",
+            ("GET", "/api/medications/{medication_id}"): "app.routers.medications",
+            ("PUT", "/api/medications/{medication_id}/doctor-preset"): "app.routers.medications",
+            ("DELETE", "/api/medications/{medication_id}/doctor-preset"): "app.routers.medications",
+            ("GET", "/api/consultations/{consultation_id}/prescription"): "app.routers.medications",
+            ("PUT", "/api/consultations/{consultation_id}/prescription/draft"): "app.routers.medications",
+            ("POST", "/api/prescriptions/{prescription_id}/approve"): "app.routers.medications",
+            ("POST", "/api/admin/medications/import"): "app.routers.medications",
             ("GET", "/api/doctor/consultations/history"): "app.routers.consultations",
             ("POST", "/api/ai/generate-report"): "app.routers.reports",
             ("POST", "/api/ai/humanize-report"): "app.routers.reports",
@@ -119,6 +130,8 @@ class Phase3ModularRouteTests(unittest.TestCase):
         self.assertIs(active_models.User.metadata, active_database.Base.metadata)
         self.assertIs(active_models.Consultation.metadata, active_database.Base.metadata)
         self.assertIs(active_models.ClinicalReport.metadata, active_database.Base.metadata)
+        self.assertIs(active_models.Prescription.metadata, active_database.Base.metadata)
+        self.assertIs(active_models.DentalMedication.metadata, active_database.Base.metadata)
         self.assertIs(notification_repository.models, active_models)
         self.assertIs(symptom_repository.models, active_models)
         self.assertIs(patient_repository.models, active_models)
@@ -126,6 +139,7 @@ class Phase3ModularRouteTests(unittest.TestCase):
         self.assertIs(clinic_settings_repository.models, active_models)
         self.assertIs(user_repository.models, active_models)
         self.assertIs(consultation_repository.models, active_models)
+        self.assertIs(medication_repository.models, active_models)
         self.assertIs(report_repository.models, active_models)
         self.assertIs(common_repository.models, active_models)
         compatibility_session = importlib.import_module("app.database.session")

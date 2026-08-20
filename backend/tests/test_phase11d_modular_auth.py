@@ -253,12 +253,12 @@ class Phase11DModularAuthTests(unittest.TestCase):
         finally:
             active_main.AUTH_MODE = original_mode
 
-    def test_route_count_unchanged_and_me_has_modular_owner(self):
+    def test_route_count_and_me_has_modular_owner(self):
         routes = list(_application_routes(active_main.app.routes))
         registrations = [
             (method, route.path) for route in routes for method in route.methods or []
         ]
-        self.assertEqual(64, len(registrations))
+        self.assertEqual(74, len(registrations))
         me = next(route for route in routes if route.path == "/api/auth/me")
         self.assertEqual("app.routers.auth", me.endpoint.__module__)
 

@@ -29,7 +29,9 @@ test('report-only legacy rows do not trigger a patient-report authorization fan-
     provider: 'supabase',
     supabaseClient: { rpc: async name => { calls.push(name); return { data: [row], error: null }; } },
   });
-  assert.deepEqual(await service.listDoctorConsultationHistory(), [{ ...row, labItems: [], labNote: null }]);
+  assert.deepEqual(await service.listDoctorConsultationHistory(), [{
+    ...row, labItems: [], labNote: null, prescription: null,
+  }]);
   assert.deepEqual(calls, ['list_doctor_consultation_history']);
 });
 

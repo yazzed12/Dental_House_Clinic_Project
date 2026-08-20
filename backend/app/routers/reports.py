@@ -33,7 +33,7 @@ def create_report_router(
         db: Session = Depends(get_db_dependency),
         user=Depends(doctor_dependency),
     ):
-        return await service.generate_ai_report(payload, user)
+        return await service.generate_ai_report(payload, user, db)
 
     @router.post("/api/ai/humanize-report")
     async def humanize_report(

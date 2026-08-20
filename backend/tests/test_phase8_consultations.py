@@ -42,6 +42,7 @@ HISTORY_FIELDS = {
     "consultationId",
     "sessionNote",
     "procedures",
+    "prescription",
 }
 
 

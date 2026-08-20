@@ -38,6 +38,16 @@ POST	/api/finance/payments/{payment_id}/corrections	required	doctor
 GET	/api/consultations/{patient_id}	required	admin,doctor
 POST	/api/consultations/{patient_id}	required	admin,doctor
 GET	/api/consultations/{patient_id}/history	required	admin,doctor
+GET	/api/medications	required	admin,doctor
+POST	/api/medications/custom	required	admin,doctor
+GET	/api/medications/{medication_id}	required	admin,doctor
+GET	/api/medications/{medication_id}/effective-preset	required	admin,doctor
+PUT	/api/medications/{medication_id}/doctor-preset	required	admin,doctor
+DELETE	/api/medications/{medication_id}/doctor-preset	required	admin,doctor
+GET	/api/consultations/{consultation_id}/prescription	required	admin,doctor
+PUT	/api/consultations/{consultation_id}/prescription/draft	required	admin,doctor
+POST	/api/prescriptions/{prescription_id}/approve	required	admin,doctor
+POST	/api/admin/medications/import	required	admin
 POST	/api/appointments/finish-by-patient/{patient_id}	required	admin,doctor
 PUT	/appointments/{appointment_id}/finish	required	admin,doctor
 GET	/api/doctor/consultations/history	required	admin,doctor

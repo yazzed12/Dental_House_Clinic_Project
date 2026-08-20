@@ -1,4 +1,6 @@
 import { API_URL } from '../config/api.js';
+import { readRuntimeConfig } from '../config/runtime.js';
+import { getSupabaseClient } from '../lib/supabaseClient.js';
 
 export class HttpError extends Error {
   constructor(message, { status, data, url } = {}) {
@@ -13,6 +15,25 @@ export class HttpError extends Error {
 export function legacyAuthHeaders(storage = globalThis.localStorage) {
   const token = storage?.getItem('clinic_token');
   return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+export async function currentAuthHeaders({
+  provider = readRuntimeConfig().authProvider,
+  storage = globalThis.localStorage,
+  supabaseClient,
+} = {}) {
+  if (provider === 'legacy') return legacyAuthHeaders(storage);
+  if (provider !== 'supabase') {
+    throw new Error(`Unsupported Auth provider: ${provider}`);
+  }
+
+  const client = supabaseClient || getSupabaseClient();
+  const { data, error } = await client.auth.getSession();
+  const token = data?.session?.access_token;
+  if (error || !token) {
+    throw new HttpError('A valid Supabase session is required.', { status: 401 });
+  }
+  return { Authorization: `Bearer ${token}` };
 }
 
 async function parseResponse(response) {
@@ -31,8 +52,11 @@ export async function apiRequest(path, {
   ...options
 } = {}) {
   const url = /^https?:\/\//.test(path) ? path : `${API_URL}${path}`;
+  const authHeaders = auth && !headers?.Authorization
+    ? await currentAuthHeaders()
+    : {};
   const requestHeaders = {
-    ...(auth ? legacyAuthHeaders() : {}),
+    ...authHeaders,
     ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
     ...headers,
   };
@@ -55,13 +79,17 @@ export async function apiRequest(path, {
 
 export async function apiBlobRequest(path, {
   headers,
+  auth = true,
   fetchImpl = globalThis.fetch,
   ...options
 } = {}) {
   const url = /^https?:\/\//.test(path) ? path : `${API_URL}${path}`;
+  const authHeaders = auth && !headers?.Authorization
+    ? await currentAuthHeaders()
+    : {};
   const response = await fetchImpl(url, {
     ...options,
-    headers: { ...legacyAuthHeaders(), ...headers },
+    headers: { ...authHeaders, ...headers },
   });
   if (!response.ok) {
     throw new HttpError(`Request failed (${response.status}).`, {

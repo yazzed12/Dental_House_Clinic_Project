@@ -2,7 +2,12 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { apiRequest, HttpError, legacyAuthHeaders } from './httpClient.js';
+import {
+  apiRequest,
+  currentAuthHeaders,
+  HttpError,
+  legacyAuthHeaders,
+} from './httpClient.js';
 
 globalThis.localStorage = { getItem: () => 'legacy-token' };
 
@@ -17,6 +22,33 @@ function jsonResponse(status, data) {
 
 test('shared transport preserves the legacy bearer token', () => {
   assert.deepEqual(legacyAuthHeaders(), { Authorization: 'Bearer legacy-token' });
+});
+
+test('shared transport reads the current Supabase bearer token', async () => {
+  const headers = await currentAuthHeaders({
+    provider: 'supabase',
+    supabaseClient: {
+      auth: {
+        getSession: async () => ({
+          data: { session: { access_token: 'supabase-token' } },
+          error: null,
+        }),
+      },
+    },
+  });
+  assert.deepEqual(headers, { Authorization: 'Bearer supabase-token' });
+});
+
+test('shared transport fails closed when the Supabase session is absent', async () => {
+  await assert.rejects(
+    currentAuthHeaders({
+      provider: 'supabase',
+      supabaseClient: {
+        auth: { getSession: async () => ({ data: { session: null }, error: null }) },
+      },
+    }),
+    error => error instanceof HttpError && error.status === 401,
+  );
 });
 
 for (const status of [401, 403, 409, 422, 500]) {

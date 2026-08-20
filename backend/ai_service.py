@@ -7,18 +7,19 @@ from langchain_core.messages import SystemMessage, HumanMessage
 import json, logging
 import re
 
+from app.core.config import OLLAMA_BASE_URL, OLLAMA_MODEL
+
 logger = logging.getLogger(__name__)
 
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
 
 def _get_llm(temperature=0.2):
-    model = os.getenv("OLLAMA_MODEL", "llama3.2:3b")
-    base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-    return ChatOllama(model=model, base_url=base_url, temperature=temperature,
-                      num_predict=1024, num_ctx=4096)
+    return ChatOllama(
+        model=OLLAMA_MODEL,
+        base_url=OLLAMA_BASE_URL,
+        temperature=temperature,
+        num_predict=1024,
+        num_ctx=4096,
+    )
 
 
 _DOCTOR_PLACEHOLDER = re.compile(
@@ -72,6 +73,7 @@ async def generate_clinical_report(data: dict) -> str:
                 {"name": item.get("name"), "quantity": item.get("quantity")}
                 for item in procedures
             ],
+            "approvedPrescription": data.get("approvedPrescription"),
             "doctor": {
                 "name": doctor.get("name"),
                 "specialty": doctor.get("specialty") or doctor.get("specialization"),
@@ -97,9 +99,14 @@ Use exactly this structure:
 | --- | --- | --- | --- |
 ## Treatment Plan
 ## Procedures Performed (only when authoritative performed procedures are supplied)
+## Approved Prescription (only when an approved prescription is supplied)
 ## Clinical Summary / Impression
 
-Represent every supplied consultation tooth once in the findings table. Professionally synthesize each Clinical Description from its supplied status, symptoms, and tooth note. Suggest a reasonable diagnosis, unverified ICD-10 candidate, and future treatment plan when supported. Never invent or change patient identity, FDI numbers, tooth status, symptoms, tooth notes, or performed procedures. Never invent radiographic or physical examination observations. Never present a proposed treatment as already performed. Keep authoritative procedures separate and do not invent tooth associations. NEVER print Patient ID, Procedure ID, internal UUIDs, or database identifiers. Do not include Date of Birth or a Consultation Note section. Do NOT output a Doctor Information section, Doctor Name, Specialty, Report Date, or Reviewed By; the authenticated server appends those fields. Never output identity placeholders. Return only the complete Markdown clinical body, with no JSON or surrounding commentary. The report remains a draft until Doctor approval."""
+Represent every supplied consultation tooth once in the findings table. Professionally synthesize each Clinical Description from its supplied status, symptoms, and tooth note. Suggest a reasonable diagnosis, unverified ICD-10 candidate, and future treatment plan when supported. Never invent or change patient identity, FDI numbers, tooth status, symptoms, tooth notes, or performed procedures. Never invent radiographic or physical examination observations. Never present a proposed treatment as already performed. Keep authoritative procedures separate and do not invent tooth associations. NEVER print Patient ID, Procedure ID, internal UUIDs, or database identifiers. Do not include Date of Birth or a Consultation Note section.
+
+The approvedPrescription value is immutable clinician-approved source data. When it is present, reproduce every supplied prescription item exactly and only organize or format it. Do not add or remove a medication. Do not change or infer brand, generic, strength, dosage form, route, dose, frequency, duration, or instructions. Do not add interactions, contraindications, side effects, pharmacological rationale, dosage advice, or postoperative medication advice. When approvedPrescription is null, do not create an Approved Prescription section and do not fabricate any prescription.
+
+Do NOT output a Doctor Information section, Doctor Name, Specialty, Report Date, or Reviewed By; the authenticated server appends those fields. Never output identity placeholders. Return only the complete Markdown clinical body, with no JSON or surrounding commentary. The report remains a draft until Doctor approval."""
         clinical_context = {
             key: value for key, value in context.items()
             if key not in ("doctor", "reportDate")
@@ -133,6 +140,9 @@ Rules:
 - Use short sentences and bullet points
 - Do NOT add any new diagnoses, treatments, or medical information not present in the original report
 - Do NOT contradict the original report
+- If an Approved Prescription section is present, preserve every medication, brand/generic name,
+  strength, dosage form, route, dose, frequency, duration, and instruction exactly. Do not add
+  medication advice, interactions, contraindications, side effects, or rationale.
 - Address the patient directly ("You have..." not "The patient has...")
 - Include sections: What We Found, What This Means, What We Recommend, What You Should Do At Home"""
 

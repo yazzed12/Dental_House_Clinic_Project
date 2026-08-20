@@ -29,7 +29,12 @@ import pending_store
 import email_service
 import hashlib
 from database import DATABASE_CONFIG, engine, get_db, Base, SessionLocal
-from app.core.config import SupabaseAuthSettings, get_auth_mode
+from app.core.config import (
+    CORS_ORIGIN_REGEX,
+    CORS_ORIGINS,
+    SupabaseAuthSettings,
+    get_auth_mode,
+)
 from app.identity.auth_dependencies import AuthDependencies
 from app.identity.supabase_auth_provider import SupabaseJwtProvider
 from app.identity.user_resolver import ApplicationUserResolver
@@ -147,23 +152,11 @@ async def safe_error_boundary(request: Request, call_next):
         )
 
 
-DEFAULT_CORS_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:5174",
-    "http://127.0.0.1:5174",
-    "http://localhost:3000",
-]
-CORS_ORIGINS = [
-    origin.strip()
-    for origin in os.getenv("CORS_ORIGINS", ",".join(DEFAULT_CORS_ORIGINS)).split(",")
-    if origin.strip()
-]
-
 # Register CORS last so it wraps the rate limiter and safe error boundary.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
+    allow_origin_regex=CORS_ORIGIN_REGEX,
     allow_credentials=False,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
@@ -953,6 +946,16 @@ app.include_router(
         audit_logger=log_event,
         report_generator=lambda patient_id: generate_clinical_report_task(patient_id),
         logger=logger,
+    )
+)
+
+from app.routers.medications import create_medication_router
+
+app.include_router(
+    create_medication_router(
+        get_db_dependency=get_db,
+        doctor_dependency=require_role("doctor"),
+        admin_dependency=require_role("admin"),
     )
 )
 

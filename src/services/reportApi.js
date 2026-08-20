@@ -87,6 +87,7 @@ export async function generateAIReport(data) {
 
 export function buildAIReportGenerationPayload({
   patient,
+  consultationId,
   consultationDate,
   examinationDate,
   reportDate,
@@ -95,8 +96,10 @@ export function buildAIReportGenerationPayload({
   performedProcedures,
   doctor,
   aiInstructions,
+  approvedPrescription,
 }) {
   return {
+    consultationId: consultationId || null,
     patient: {
       id: patient?.id ?? null,
       name: patient?.name || '',
@@ -119,6 +122,8 @@ export function buildAIReportGenerationPayload({
       clinic: doctor?.clinic || null,
     },
     aiInstructions: aiInstructions?.trim() || null,
+    approvedPrescription: approvedPrescription?.status === 'approved'
+      ? approvedPrescription : null,
   };
 }
 

@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, CheckConstraint, Column, Computed, Date, DateTime, ForeignKey, Index, Integer, Numeric, String, Text, Time, UniqueConstraint, Uuid, func, text
+from sqlalchemy import Boolean, CheckConstraint, Column, Computed, Date, DateTime, ForeignKey, Index, Integer, JSON, Numeric, String, Text, Time, UniqueConstraint, Uuid, func, text
 from sqlalchemy.orm import relationship, validates
 from datetime import datetime, date as date_cls, time as time_cls
 from database import Base
@@ -329,6 +329,160 @@ class ClinicalReport(Base):
 
     patient = relationship("Patient")
     doctor = relationship("User")
+
+
+class MedicationImportBatch(Base):
+    __tablename__ = "medication_import_batches"
+
+    id = Column(uuid_string_type(), primary_key=True, server_default=text("gen_random_uuid()"))
+    source_name = Column(Text, nullable=False)
+    source_version = Column(Text)
+    source_reference = Column(Text)
+    market = Column(Text, nullable=False)
+    input_format = Column(Text, nullable=False)
+    status = Column(Text, nullable=False, default="processing")
+    total_rows = Column(Integer, nullable=False, default=0)
+    inserted_count = Column(Integer, nullable=False, default=0)
+    updated_count = Column(Integer, nullable=False, default=0)
+    unchanged_count = Column(Integer, nullable=False, default=0)
+    rejected_count = Column(Integer, nullable=False, default=0)
+    duplicate_count = Column(Integer, nullable=False, default=0)
+    imported_by = Column(uuid_string_type(), ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
+    started_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    completed_at = Column(DateTime(timezone=True))
+
+
+class MedicationImportRejection(Base):
+    __tablename__ = "medication_import_rejections"
+    __table_args__ = (UniqueConstraint("batch_id", "row_number", name="medication_import_rejections_batch_row_uq"),)
+
+    id = Column(uuid_string_type(), primary_key=True, server_default=text("gen_random_uuid()"))
+    batch_id = Column(uuid_string_type(), ForeignKey("medication_import_batches.id", ondelete="RESTRICT"), nullable=False)
+    row_number = Column(Integer, nullable=False)
+    source_record_id = Column(Text)
+    raw_payload = Column(JSON, nullable=False)
+    reasons = Column(JSON, nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+
+
+class DentalMedication(Base):
+    __tablename__ = "dental_medications"
+
+    id = Column(uuid_string_type(), primary_key=True, server_default=text("gen_random_uuid()"))
+    catalog_scope = Column(Text, nullable=False)
+    identity_key = Column(Text, nullable=False)
+    brand_name = Column(Text, nullable=False)
+    generic_name = Column(Text)
+    strength = Column(Text, nullable=False)
+    dosage_form = Column(Text, nullable=False)
+    route = Column(Text, nullable=False)
+    category = Column(Text)
+    manufacturer = Column(Text)
+    market = Column(Text, nullable=False)
+    country = Column(Text)
+    source_type = Column(Text, nullable=False)
+    source_name = Column(Text, nullable=False)
+    source_reference = Column(Text)
+    source_version = Column(Text)
+    source_record_id = Column(Text)
+    verification_status = Column(Text, nullable=False, default="pending")
+    licensing_status = Column(Text, nullable=False, default="pending")
+    imported_at = Column(DateTime(timezone=True))
+    last_verified_at = Column(DateTime(timezone=True))
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_by = Column(uuid_string_type(), ForeignKey("users.id", ondelete="RESTRICT"))
+    import_batch_id = Column(uuid_string_type(), ForeignKey("medication_import_batches.id", ondelete="RESTRICT"))
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class MedicationClinicalPreset(Base):
+    __tablename__ = "medication_clinical_presets"
+
+    id = Column(uuid_string_type(), primary_key=True, server_default=text("gen_random_uuid()"))
+    medication_id = Column(uuid_string_type(), ForeignKey("dental_medications.id", ondelete="RESTRICT"), nullable=False)
+    default_dose = Column(Text)
+    default_frequency = Column(Text)
+    default_duration = Column(Text)
+    default_instructions = Column(Text)
+    clinical_context = Column(Text, nullable=False, default="general_dental")
+    source = Column(Text, nullable=False)
+    source_reference = Column(Text)
+    source_version = Column(Text)
+    reviewed_by = Column(uuid_string_type(), ForeignKey("users.id", ondelete="RESTRICT"))
+    reviewed_at = Column(DateTime(timezone=True))
+    preset_version = Column(Integer, nullable=False, default=1)
+    review_status = Column(Text, nullable=False, default="pending")
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class DoctorMedicationPreset(Base):
+    __tablename__ = "doctor_medication_presets"
+    __table_args__ = (UniqueConstraint("doctor_id", "medication_id", name="doctor_medication_presets_doctor_medication_uq"),)
+
+    id = Column(uuid_string_type(), primary_key=True, server_default=text("gen_random_uuid()"))
+    doctor_id = Column(uuid_string_type(), ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
+    medication_id = Column(uuid_string_type(), ForeignKey("dental_medications.id", ondelete="RESTRICT"), nullable=False)
+    default_dose = Column(Text)
+    default_frequency = Column(Text)
+    default_duration = Column(Text)
+    default_instructions = Column(Text)
+    doctor_notes = Column(Text)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class Prescription(Base):
+    __tablename__ = "prescriptions"
+    __table_args__ = (UniqueConstraint("consultation_id", name="prescriptions_consultation_uq"),)
+
+    id = Column(uuid_string_type(), primary_key=True, server_default=text("gen_random_uuid()"))
+    consultation_id = Column(uuid_string_type(), ForeignKey("consultations.id", ondelete="RESTRICT"), nullable=False)
+    patient_id = Column(uuid_string_type(), ForeignKey("patients.id", ondelete="RESTRICT"), nullable=False)
+    doctor_id = Column(uuid_string_type(), ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
+    appointment_id = Column(uuid_string_type(), ForeignKey("appointments.id", ondelete="RESTRICT"))
+    status = Column(Text, nullable=False, default="draft")
+    version = Column(Integer, nullable=False, default=1)
+    approved_by = Column(uuid_string_type(), ForeignKey("users.id", ondelete="RESTRICT"))
+    approved_at = Column(DateTime(timezone=True))
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    items = relationship("PrescriptionItem", order_by="PrescriptionItem.position")
+
+
+class PrescriptionItem(Base):
+    __tablename__ = "prescription_items"
+    __table_args__ = (
+        UniqueConstraint("prescription_id", "position", name="prescription_items_position_uq"),
+        UniqueConstraint("prescription_id", "medication_id", name="prescription_items_medication_uq"),
+    )
+
+    id = Column(uuid_string_type(), primary_key=True, server_default=text("gen_random_uuid()"))
+    prescription_id = Column(uuid_string_type(), ForeignKey("prescriptions.id", ondelete="RESTRICT"), nullable=False)
+    medication_id = Column(uuid_string_type(), ForeignKey("dental_medications.id", ondelete="RESTRICT"))
+    clinical_preset_id = Column(uuid_string_type(), ForeignKey("medication_clinical_presets.id", ondelete="RESTRICT"))
+    doctor_preset_id = Column(uuid_string_type(), ForeignKey("doctor_medication_presets.id", ondelete="RESTRICT"))
+    position = Column(Integer, nullable=False)
+    brand_name_snapshot = Column(Text, nullable=False)
+    generic_name_snapshot = Column(Text)
+    strength_snapshot = Column(Text, nullable=False)
+    dosage_form_snapshot = Column(Text, nullable=False)
+    route_snapshot = Column(Text, nullable=False)
+    dose_snapshot = Column(Text, nullable=False)
+    frequency_snapshot = Column(Text, nullable=False)
+    duration_snapshot = Column(Text, nullable=False)
+    instructions_snapshot = Column(Text)
+    doctor_notes_snapshot = Column(Text)
+    source_type_snapshot = Column(Text)
+    source_name_snapshot = Column(Text)
+    source_reference_snapshot = Column(Text)
+    source_version_snapshot = Column(Text)
+    source_record_id_snapshot = Column(Text)
+    verification_status_snapshot = Column(Text)
+    licensing_status_snapshot = Column(Text)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
 
 class Symptom(Base):
     __tablename__ = "symptoms"

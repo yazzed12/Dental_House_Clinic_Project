@@ -19,6 +19,8 @@ import { getConsultationProcedures } from '../../services/financeApi';
 import { decimalToCents, formatMoney } from '../../config/money';
 import { serializeClinicalFindings, unionFindingSymptoms } from '../../services/clinicalFindings.js';
 import MedicalReportMarkdown from '../../components/consultation/MedicalReportMarkdown.jsx';
+import MedicationSection from '../../components/consultation/MedicationSection.jsx';
+import { usePrescription } from '../../hooks/usePrescription.js';
 import {
   serializeReviewedAssessments,
 } from '../../services/medicalReportReview.js';
@@ -175,6 +177,7 @@ export default function ConsultationFlow() {
   const [isSavingPatient, setIsSavingPatient] = useState(false);
   const [isFinishing, setIsFinishing] = useState(false);
   const finishInFlightRef = React.useRef(false);
+  const medicationSectionRef = React.useRef(null);
 
   const showToast = (msg, type = 'info') => {
     setToast({ msg, type });
@@ -246,6 +249,11 @@ export default function ConsultationFlow() {
     cancelFinishBarrier, markConsultationFinished, retrySave, symptoms,
     clinicalFindingsByTooth, setToothFindingSymptoms, removeClinicalFinding,
   } = useDentalSystem(urlPatientId);
+
+  const prescriptionWorkflow = usePrescription({
+    consultationId,
+    ensureConsultationInitialized,
+  });
 
   const consultationLabs = useConsultationLabs(consultationId, ensureConsultationInitialized);
 
@@ -389,6 +397,7 @@ export default function ConsultationFlow() {
       const savedSession = await saveCurrentSession();
       const data = buildAIReportGenerationPayload({
         patient,
+        consultationId: savedSession?.consultationId || consultationId,
         examinationDate,
         reportDate: new Date().toISOString(),
         clinicalFindings: structuredFindings,
@@ -396,6 +405,7 @@ export default function ConsultationFlow() {
         performedProcedures: procedureSummary.items,
         doctor: { name: user?.name || 'Doctor', specialty: user?.specialization || null },
         aiInstructions,
+        approvedPrescription: prescriptionWorkflow.approvedPrescription,
       });
       const result = await generateAIReport(data);
       const nextDraft = Object.fromEntries(structuredFindings.map(finding => [finding.toothId, {
@@ -498,6 +508,11 @@ export default function ConsultationFlow() {
       return;
     }
     if (!completeAppointmentByPatient || !patient || finishInFlightRef.current) return;
+    if (prescriptionWorkflow.reviewRequired) {
+      medicationSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      showToast('Review and approve the Prescription Draft before finishing.', 'error');
+      return;
+    }
     finishInFlightRef.current = true;
     setIsFinishing(true);
     try {
@@ -1083,6 +1098,11 @@ export default function ConsultationFlow() {
                 <p>Click on any tooth in the 3D model to start recording findings.</p>
               </div>
             )}
+            <MedicationSection
+              sectionRef={medicationSectionRef}
+              workflow={prescriptionWorkflow}
+              disabled={!isConsultationActive}
+            />
           </aside>
         </section>
       </div>

@@ -13,6 +13,7 @@ __all__ = [
     "LogRepository",
     "AppointmentConditionRepository",
     "CommonRepository",
+    "MedicationRepository",
 ]
 
 _REPOSITORY_MODULES = {
@@ -28,6 +29,7 @@ _REPOSITORY_MODULES = {
     "LogRepository": "log_repository",
     "AppointmentConditionRepository": "appointment_condition_repo",
     "CommonRepository": "common_repository",
+    "MedicationRepository": "medication_repository",
 }
 
 

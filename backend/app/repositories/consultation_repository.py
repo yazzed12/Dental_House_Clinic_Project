@@ -235,5 +235,14 @@ class ConsultationRepository:
             models.ConsultationProcedure.id.asc(),
         ).all()
 
+    @staticmethod
+    def get_approved_prescription(db: Session, consultation_id):
+        return db.query(models.Prescription).options(
+            joinedload(models.Prescription.items)
+        ).filter(
+            models.Prescription.consultation_id == str(consultation_id),
+            models.Prescription.status == "approved",
+        ).first()
+
     def count(self, db: Session) -> int:
         return db.query(models.Consultation).count()

@@ -234,6 +234,7 @@ class AppointmentService:
                 status_code=404,
                 detail="No active appointment found for this patient today",
             )
+        self._ensure_no_unreviewed_prescription(db, appointment.id)
         appointment.status = "completed"
         if self.audit_logger:
             self.audit_logger(
@@ -252,6 +253,7 @@ class AppointmentService:
         appointment = self.repository.get_by_id(db, appointment_id)
         if not appointment:
             raise HTTPException(status_code=404, detail="Appointment not found")
+        self._ensure_no_unreviewed_prescription(db, appointment.id)
         appointment.status = "completed"
         if self.audit_logger:
             self.audit_logger(
@@ -261,3 +263,15 @@ class AppointmentService:
             )
         self.repository.commit(db)
         return {"status": "success"}
+
+    @staticmethod
+    def _ensure_no_unreviewed_prescription(db: Session, appointment_id) -> None:
+        draft = db.query(models.Prescription).join(
+            models.Consultation,
+            models.Consultation.id == models.Prescription.consultation_id,
+        ).filter(
+            models.Consultation.appointment_id == str(appointment_id),
+            models.Prescription.status == "draft",
+        ).first()
+        if draft:
+            raise HTTPException(status_code=409, detail="PRESCRIPTION_REVIEW_REQUIRED")

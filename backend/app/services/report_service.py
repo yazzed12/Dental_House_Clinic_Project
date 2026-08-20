@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 import models
 from app.repositories.report_repository import ReportRepository
 from app.repositories.consultation_repository import ConsultationRepository
+from app.services.consultation_service import ConsultationService
 
 
 class ReportService:
@@ -36,9 +37,29 @@ class ReportService:
         self.logger = logger
         self.path_exists = path_exists
 
-    async def generate_ai_report(self, payload: dict, user) -> dict:
+    async def generate_ai_report(self, payload: dict, user, db: Session) -> dict:
         try:
             authoritative_payload = dict(payload)
+            consultation_id = payload.get("consultationId")
+            approved_prescription = None
+            if consultation_id:
+                consultation = db.query(models.Consultation).filter(
+                    models.Consultation.id == str(consultation_id)
+                ).first()
+                if not consultation or (
+                    user.role != "admin" and str(consultation.doctor_id) != str(user.id)
+                ):
+                    raise HTTPException(
+                        status_code=403, detail="REPORT_CONSULTATION_FORBIDDEN"
+                    )
+                approved_prescription = (
+                    self.consultation_repository.get_approved_prescription(
+                        db, consultation_id
+                    )
+                )
+            authoritative_payload["approvedPrescription"] = (
+                ConsultationService._serialize_prescription(approved_prescription)
+            )
             authoritative_payload["doctor"] = {
                 "name": (getattr(user, "full_name", None) or "").strip() or None,
                 "specialty": (
@@ -50,6 +71,8 @@ class ReportService:
             ).date().isoformat()
             report_text = await self.report_ai(authoritative_payload)
             return {"status": "success", "report": report_text}
+        except HTTPException:
+            raise
         except Exception as error:
             self.logger.error(f"AI Report Generation Error: {error}")
             raise HTTPException(
