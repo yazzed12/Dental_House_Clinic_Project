@@ -10,7 +10,6 @@ from typing import Any
 
 
 VERIFICATION_STATUSES = {"pending", "verified", "unverified", "deprecated"}
-LICENSING_STATUSES = {"pending", "approved", "restricted", "rejected"}
 
 
 def normalize_text(value: Any) -> str | None:
@@ -94,7 +93,6 @@ def normalize_import_rows(
         source_record_id = normalize_text(_first(raw, "source_record_id", "source_id", "record_id", "id"))
         try:
             verification = (normalize_text(_first(raw, "verification_status")) or "pending").casefold()
-            licensing = (normalize_text(_first(raw, "licensing_status")) or "pending").casefold()
             values = {
                 "brand_name": normalize_text(_first(raw, "brand_name", "brand", "trade_name")),
                 "generic_name": normalize_text(_first(raw, "generic_name", "generic", "active_ingredient")),
@@ -107,7 +105,6 @@ def normalize_import_rows(
                 "country": normalize_text(_first(raw, "country")) or normalize_text(country),
                 "source_record_id": source_record_id,
                 "verification_status": verification,
-                "licensing_status": licensing,
                 "is_active": _active(_first(raw, "is_active", "status")),
             }
             reasons = []
@@ -126,8 +123,6 @@ def normalize_import_rows(
             )
             if verification not in VERIFICATION_STATUSES:
                 reasons.append("verification_status is invalid")
-            if licensing not in LICENSING_STATUSES:
-                reasons.append("licensing_status is invalid")
             if reasons:
                 rejected.append(RejectedImportRow(row_number, raw, source_record_id, reasons))
                 continue

@@ -36,6 +36,7 @@ const mapAppointment = (appointment) => {
   if (!appointment) return null;
   return {
     id: appointment.id,
+    displayId: appointment.display_id,
     patient_id: appointment.patient_id,
     patient: appointment.patient,
     doctor_id: appointment.doctor_id,

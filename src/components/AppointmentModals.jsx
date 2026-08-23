@@ -26,7 +26,7 @@ export function DetailModal({ appointment, patients, onClose, onEdit, onStatusCh
             </div>
             <div>
               <h2 style={{ margin:0,fontSize:'1.1rem',fontWeight:800,color:'var(--clr-text)' }}>Appointment Details</h2>
-              <p style={{ margin:0,fontSize:'0.75rem',color:'var(--clr-subtext)' }}>#{String(appointment.id).padStart(3,'0')}</p>
+              <p style={{ margin:0,fontSize:'0.75rem',color:'var(--clr-subtext)' }}>{appointment.displayId || '—'}</p>
             </div>
           </div>
           <button onClick={onClose} style={{ background:'none',border:'none',cursor:'pointer',color:'var(--clr-subtext)',padding:4 }}><X size={18}/></button>

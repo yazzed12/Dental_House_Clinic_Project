@@ -1,4 +1,5 @@
 import { apiRequest } from './httpClient.js';
+import { normalizePrescriptionSnapshot } from './medicationApi.js';
 import { readRuntimeConfig } from '../config/runtime.js';
 import { getSupabaseClient } from '../lib/supabaseClient.js';
 
@@ -26,7 +27,7 @@ export const normalizeConsultationHistoryItem = item => ({
   labItems: Array.isArray(item?.labItems) ? item.labItems : [],
   labNote: typeof item?.labNote === 'string' ? item.labNote : null,
   prescription: item?.prescription?.status === 'approved'
-    ? { ...item.prescription, items: Array.isArray(item.prescription.items) ? item.prescription.items : [] }
+    ? normalizePrescriptionSnapshot(item.prescription)
     : null,
 });
 

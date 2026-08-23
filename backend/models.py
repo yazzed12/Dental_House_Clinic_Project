@@ -386,7 +386,6 @@ class DentalMedication(Base):
     source_version = Column(Text)
     source_record_id = Column(Text)
     verification_status = Column(Text, nullable=False, default="pending")
-    licensing_status = Column(Text, nullable=False, default="pending")
     imported_at = Column(DateTime(timezone=True))
     last_verified_at = Column(DateTime(timezone=True))
     is_active = Column(Boolean, nullable=False, default=True)
@@ -481,7 +480,6 @@ class PrescriptionItem(Base):
     source_version_snapshot = Column(Text)
     source_record_id_snapshot = Column(Text)
     verification_status_snapshot = Column(Text)
-    licensing_status_snapshot = Column(Text)
     created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow)
 
 class Symptom(Base):

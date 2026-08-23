@@ -88,7 +88,7 @@ export default function Appointments() {
   const filtered = useMemo(() => {
     return appointments.filter(a => {
       const q = search.toLowerCase();
-      const matchSearch = !q || [a.patient, a.doctor, a.type, a.status, a.date, a.time, a.phone]
+      const matchSearch = !q || [a.displayId, a.patient, a.doctor, a.type, a.status, a.date, a.time, a.phone]
         .filter(Boolean).some(f => f.toLowerCase().includes(q));
       const matchStatus = statusFilter === 'All' || a.status === statusFilter;
       const matchDate = !selectedDate || a.date === selectedDate;
@@ -210,7 +210,7 @@ export default function Appointments() {
                     onMouseEnter={e=>e.currentTarget.style.background='var(--clr-bg)'}
                     onMouseLeave={e=>e.currentTarget.style.background='transparent'}
                     onClick={()=>setDetailAppt(a)}>
-                    <td style={{ padding:'12px 16px',color:'var(--clr-subtext)',fontSize:'0.82rem',fontFamily:'monospace' }}>#{String(a.id).padStart(3,'0')}</td>
+                    <td style={{ padding:'12px 16px',color:'var(--clr-subtext)',fontSize:'0.82rem',fontFamily:'monospace' }}>{a.displayId || '—'}</td>
                     <td style={{ padding:'12px 16px' }}>
                       <div style={{ display:'flex',alignItems:'center',gap:10 }}>
                         <div className="avatar" style={{ width:30,height:30,fontSize:'0.65rem' }}>

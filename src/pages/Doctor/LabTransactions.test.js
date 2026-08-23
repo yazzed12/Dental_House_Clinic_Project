@@ -31,6 +31,9 @@ test('server summary values and immutable transaction snapshots render directly'
   for (const field of ['labName', 'productName', 'unitPrice', 'quantity', 'totalAmount', 'transactionTotal']) assert.match(page, new RegExp(`transaction\\.${field}|item\\.${field}`));
   assert.doesNotMatch(page, /listLabProducts|currentPrice/);
   assert.match(page, /consultations-history\?consultationId=\$\{transaction\.consultationId\}/);
+  assert.match(page, /transaction\.consultationDisplayId/);
+  assert.doesNotMatch(page, /formatDisplayId\(transaction\.consultationId, 'CON'\)/);
+  assert.doesNotMatch(page, /transaction\.consultationId\.slice\(/);
 });
 
 test('payment flows append revisions, refresh independently, and block archived creation', () => {

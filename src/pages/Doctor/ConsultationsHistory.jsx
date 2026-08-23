@@ -241,7 +241,7 @@ export function ExpandableConsultationCard({ report, isExpanded, onToggle, onUpd
           </div>
           <div>
             <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--clr-text)' }}>{report.patient_name}</div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--clr-text-muted)', fontWeight: 600 }}>ID: #{report.patient_id}</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--clr-text-muted)', fontWeight: 600 }}>ID: {report.patientDisplayId || '—'}</div>
           </div>
           <div style={{ width: 1, height: 20, background: 'var(--clr-border)', margin: '0 4px' }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>
@@ -283,7 +283,7 @@ export function ExpandableConsultationCard({ report, isExpanded, onToggle, onUpd
           <div style={{ height: 1, background: 'var(--clr-border)', marginBottom: 32 }} />
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 24, marginBottom: 40 }}>
-            <InfoBlock icon={User} label="Patient" value={report.patient_name} sub={`ID: #${report.patient_id}`} color="#3b82f6" />
+            <InfoBlock icon={User} label="Patient" value={report.patient_name} sub={`ID: ${report.patientDisplayId || '—'}`} color="#3b82f6" />
             <InfoBlock icon={Activity} label="Clinical Target" value={report.tooth_id ? `Tooth #${report.tooth_id}` : 'General Session'} sub={isEditing ? 'FDI Number (Locked)' : report.tooth_status} color="#8b5cf6" />
             <InfoBlock icon={CheckCircle2} label="Status" value={isEditing ? 'Editing...' : report.status.toUpperCase()} color="#10b981" />
           </div>

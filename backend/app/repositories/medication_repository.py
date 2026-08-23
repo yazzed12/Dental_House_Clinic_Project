@@ -16,8 +16,7 @@ class MedicationRepository:
                 (models.DentalMedication.catalog_scope == "clinic")
                 & (models.DentalMedication.verification_status == "unverified"),
                 (models.DentalMedication.catalog_scope == "global")
-                & (models.DentalMedication.verification_status == "verified")
-                & (models.DentalMedication.licensing_status == "approved"),
+                & (models.DentalMedication.verification_status == "verified"),
             ),
             or_(
                 func.lower(models.DentalMedication.brand_name).like(term),

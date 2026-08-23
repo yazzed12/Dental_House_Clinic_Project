@@ -4,6 +4,7 @@ const mapFromDb = (p) => {
   if (!p) return null;
   return {
     id: p.id,
+    displayId: p.display_id,
     name: p.name,
     age: p.age,
     phone: p.phone,

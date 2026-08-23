@@ -52,6 +52,7 @@ async function renderHistoryCard(report) {
 
 const baseReport = {
   id: 'report-1', reportId: 'report-1', patient_id: 'patient-1',
+  patientDisplayId: 'P-0826-00001',
   patient_name: 'Patient', created_at: '2026-08-14T10:00:00Z',
   status: 'finalized', symptoms: [], procedures: [], clinicalFindings: [],
 };
@@ -67,6 +68,16 @@ test('actual Consultation History card renders finalized snapshot Markdown as se
   assert.match(html, /<td[^>]*>17<\/td>/);
   assert.doesNotMatch(html, /\| FDI Tooth Number \|/);
   assert.doesNotMatch(html, /## Clinical Findings &amp; Diagnosis/);
+});
+
+test('actual Consultation History card renders a patient display ID without exposing the stored ID', async () => {
+  const html = await renderHistoryCard({
+    ...baseReport,
+    reportSnapshot: { schemaVersion: 1, finalNarrative: narrative },
+  });
+
+  assert.match(html, /P-0826-00001/);
+  assert.doesNotMatch(html, /ID:\s*#?patient-1/);
 });
 
 test('finalized history renders the stored humanized derivative separately and remains read-only', async () => {

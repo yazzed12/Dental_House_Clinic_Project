@@ -597,7 +597,7 @@ export default function ConsultationFlow() {
                   </span>
                 </h2>
                 <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--clr-subtext)' }}>
-                  ID: {patient.id} • {patient.gender || 'N/A'} • {patient.age ? `${patient.age}y` : 'N/A'}
+                  ID: {patient.displayId || '—'} • {patient.gender || 'N/A'} • {patient.age ? `${patient.age}y` : 'N/A'}
                 </p>
               </div>
             </div>

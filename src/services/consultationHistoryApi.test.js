@@ -54,6 +54,27 @@ test('history normalizes Migration 023 Lab fields without catalog fan-out', asyn
   assert.deepEqual(calls, ['list_doctor_consultation_history']);
 });
 
+test('history keeps only the approved prescription snapshot contract', async () => {
+  const service = createConsultationHistoryService({
+    provider: 'supabase',
+    supabaseClient: { rpc: async () => ({
+      data: [{
+        id: 'history-1',
+        prescription: {
+          id: 'prescription-1', status: 'approved', retiredMetadata: 'ignored',
+          items: [{ brandName: 'Fixture', dose: 'Doctor value', retiredMetadata: 'ignored' }],
+        },
+      }],
+      error: null,
+    }) },
+  });
+  const [result] = await service.listDoctorConsultationHistory();
+  assert.deepEqual(result.prescription, {
+    id: 'prescription-1', status: 'approved',
+    items: [{ brandName: 'Fixture', dose: 'Doctor value' }],
+  });
+});
+
 test('valid empty history stays distinct from authorization and transport errors', async () => {
   const empty = createConsultationHistoryService({
     provider: 'supabase', supabaseClient: { rpc: async () => ({ data: [], error: null }) },

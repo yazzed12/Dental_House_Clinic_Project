@@ -72,6 +72,21 @@ test('AI generation supports one finding and no optional instructions or procedu
   assert.deepEqual(payload.performedProcedures, []);
 });
 
+test('AI generation whitelists immutable approved prescription snapshot fields', () => {
+  const payload = buildAIReportGenerationPayload({
+    patient: { id: 'patient-1', name: 'Ada' },
+    clinicalFindings: [],
+    approvedPrescription: {
+      id: 'prescription-1', status: 'approved', retiredMetadata: 'ignored',
+      items: [{ brandName: 'Fixture', dose: 'Doctor value', retiredMetadata: 'ignored' }],
+    },
+  });
+  assert.deepEqual(payload.approvedPrescription, {
+    id: 'prescription-1', status: 'approved',
+    items: [{ brandName: 'Fixture', dose: 'Doctor value' }],
+  });
+});
+
 test('consultation generation uses all findings regardless of current selected tooth', async () => {
   const source = await readFile(new URL('../pages/Doctor/ConsultationFlow.jsx', import.meta.url), 'utf8');
   const generation = source.slice(source.indexOf('const handleGenerateReport'), source.indexOf('const handleFinalizeReport'));

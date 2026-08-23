@@ -138,7 +138,7 @@ export function PatientViewModal({ patient, appointments, records, onClose, onVi
             <div className="avatar" style={{ width:48,height:48,fontSize:'1rem' }}>{initials}</div>
             <div>
               <h2 style={{ margin:0,fontSize:'1.1rem',fontWeight:800,color:'var(--clr-text)' }}>{patient.name}</h2>
-              <p style={{ margin:0,fontSize:'0.78rem',color:'var(--clr-subtext)' }}>P-{String(patient.id).padStart(4,'0')} • {patient.gender || 'Unknown'} • {patient.age ? `${patient.age}y` : 'Age N/A'}</p>
+              <p style={{ margin:0,fontSize:'0.78rem',color:'var(--clr-subtext)' }}>{patient.displayId || '—'} • {patient.gender || 'Unknown'} • {patient.age ? `${patient.age}y` : 'Age N/A'}</p>
             </div>
           </div>
           <div style={{ display:'flex',alignItems:'center',gap:8 }}>

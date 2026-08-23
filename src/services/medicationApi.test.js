@@ -6,7 +6,12 @@ import { buildAIReportGenerationPayload } from './reportApi.js';
 
 const fakeClient = calls => ({ rpc: async (name, args) => {
   calls.push({ name, args });
-  return { data: name === 'search_dental_medications' ? [{ id: 'm-1' }] : { id: 'result' }, error: null };
+  return {
+    data: name === 'search_dental_medications'
+      ? [{ id: 'm-1', brandName: 'Fixture', verificationStatus: 'verified', retiredMetadata: 'ignored' }]
+      : { id: 'result' },
+    error: null,
+  };
 } });
 
 test('Supabase medication service preserves narrow RPC boundaries', async () => {
@@ -16,7 +21,7 @@ test('Supabase medication service preserves narrow RPC boundaries', async () => 
   await service.getEffectiveMedicationPreset('m-1');
   await service.savePrescriptionDraft('c-1', 3, [{ medicationId: 'm-1' }]);
   await service.approvePrescription('p-1', 4);
-  assert.deepEqual(results, [{ id: 'm-1' }]);
+  assert.deepEqual(results, [{ id: 'm-1', brandName: 'Fixture', verificationStatus: 'verified' }]);
   assert.deepEqual(calls, [
     { name: 'search_dental_medications', args: { p_query: 'synthetic', p_limit: 12 } },
     { name: 'get_effective_medication_preset', args: { p_medication_id: 'm-1' } },
@@ -41,13 +46,18 @@ test('custom medication creation cannot claim imported/global authority', async 
 });
 
 test('AI generation payload includes an exact approved prescription and excludes drafts', () => {
-  const approved = { id: 'p-1', status: 'approved', items: [{ brandName: 'Fixture', dose: 'Doctor value' }] };
+  const approved = {
+    id: 'p-1', status: 'approved', retiredMetadata: 'ignored',
+    items: [{ brandName: 'Fixture', dose: 'Doctor value', retiredMetadata: 'ignored' }],
+  };
   const payload = buildAIReportGenerationPayload({
     patient: { id: 'patient-1', name: 'Patient' }, consultationId: 'consultation-1',
     clinicalFindings: [], performedProcedures: [], doctor: {}, approvedPrescription: approved,
   });
   assert.equal(payload.consultationId, 'consultation-1');
-  assert.deepEqual(payload.approvedPrescription, approved);
+  assert.deepEqual(payload.approvedPrescription, {
+    id: 'p-1', status: 'approved', items: [{ brandName: 'Fixture', dose: 'Doctor value' }],
+  });
   assert.equal(buildAIReportGenerationPayload({
     patient: {}, clinicalFindings: [], performedProcedures: [], doctor: {},
     approvedPrescription: { status: 'draft', items: [] },

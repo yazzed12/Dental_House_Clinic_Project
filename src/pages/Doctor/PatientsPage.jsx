@@ -74,7 +74,7 @@ export default function PatientsPage() {
   const filtered = useMemo(() => {
     return patients.filter(p => {
       const q = search.toLowerCase();
-      const matchSearch = !q || [p.name, p.phone, String(p.id), p.condition, p.gender, p.bloodType, p.lastVisit]
+      const matchSearch = !q || [p.name, p.phone, p.displayId, p.condition, p.gender, p.bloodType, p.lastVisit]
         .filter(Boolean).some(f => f.toLowerCase().includes(q));
       const matchStatus = !filters.status || p.status === filters.status;
       const matchGender = !filters.gender || p.gender === filters.gender;
@@ -192,7 +192,7 @@ export default function PatientsPage() {
                           <div className="avatar" style={{ width:38,height:38,fontSize:'0.78rem' }}>{initials}</div>
                           <div>
                             <h3 style={{ margin:0,fontSize:'0.92rem',fontWeight:800,color:'var(--clr-text)' }}>{patient.name}</h3>
-                            <p style={{ margin:0,fontSize:'0.72rem',color:'var(--clr-subtext)' }}>P-{String(patient.id).padStart(4,'0')} • {patient.gender || 'Unknown'}</p>
+                            <p style={{ margin:0,fontSize:'0.72rem',color:'var(--clr-subtext)' }}>{patient.displayId || '—'} • {patient.gender || 'Unknown'}</p>
                           </div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

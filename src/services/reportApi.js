@@ -5,6 +5,7 @@ import { API_URL } from '../config/api.js';
 import { apiBlobRequest } from './httpClient.js';
 import { readRuntimeConfig } from '../config/runtime.js';
 import { getSupabaseClient } from '../lib/supabaseClient.js';
+import { normalizePrescriptionSnapshot } from './medicationApi.js';
 
 function legacyHeaders() {
   const token = localStorage.getItem('clinic_token');
@@ -123,7 +124,7 @@ export function buildAIReportGenerationPayload({
     },
     aiInstructions: aiInstructions?.trim() || null,
     approvedPrescription: approvedPrescription?.status === 'approved'
-      ? approvedPrescription : null,
+      ? normalizePrescriptionSnapshot(approvedPrescription) : null,
   };
 }
 

@@ -19,7 +19,8 @@ test('Supabase appointment list uses the safe projection RPC and maps display da
   const client = createSupabaseMock({
     get_appointments: {
       data: [{
-        id: 'appointment-1', patient_id: 'patient-1', patient: 'Patient One',
+        id: 'appointment-1', display_id: 'A-0826-00001',
+        patient_id: 'patient-1', patient: 'Patient One',
         doctor_id: 'doctor-1', doctor: 'Doctor One', date: '2026-08-25',
         time: '09:30', type: 'follow_up', status: 'no_show',
         condition: 'Review', notes: 'Bring x-rays',
@@ -35,7 +36,8 @@ test('Supabase appointment list uses the safe projection RPC and maps display da
   });
 
   assert.deepEqual(await service.listAppointments(), [{
-    id: 'appointment-1', patient_id: 'patient-1', patient: 'Patient One',
+    id: 'appointment-1', displayId: 'A-0826-00001',
+    patient_id: 'patient-1', patient: 'Patient One',
     doctor_id: 'doctor-1', doctor: 'Doctor One', date: '2026-08-25',
     time: '09:30', type: 'Follow-up', status: 'Missed',
     condition: 'Review', notes: 'Bring x-rays',

@@ -36,7 +36,6 @@ class MedicationService:
             "market": row.market, "catalogScope": row.catalog_scope,
             "isCustom": row.catalog_scope == "clinic",
             "verificationStatus": row.verification_status,
-            "licensingStatus": row.licensing_status,
             "sourceType": row.source_type, "sourceName": row.source_name,
             "sourceReference": row.source_reference,
             "sourceVersion": row.source_version,
@@ -47,8 +46,7 @@ class MedicationService:
     def _is_prescribable(medication) -> bool:
         return bool(medication and medication.is_active and (
             (medication.catalog_scope == "clinic" and medication.verification_status == "unverified")
-            or (medication.catalog_scope == "global" and medication.verification_status == "verified"
-                and medication.licensing_status == "approved")
+            or (medication.catalog_scope == "global" and medication.verification_status == "verified")
         ))
 
     def search(self, db: Session, query: str, limit: int = 20) -> list[dict]:
@@ -80,8 +78,7 @@ class MedicationService:
             route=payload.route, category=_clean(payload.category),
             manufacturer=_clean(payload.manufacturer), market="clinic", country="clinic",
             source_type="clinic_custom", source_name="Clinician-entered custom medication",
-            verification_status="unverified", licensing_status="pending",
-            is_active=True, created_by=str(user.id),
+            verification_status="unverified", is_active=True, created_by=str(user.id),
         )
         db.add(medication)
         try:
@@ -178,7 +175,6 @@ class MedicationService:
                 "sourceName": item.source_name_snapshot, "sourceReference": item.source_reference_snapshot,
                 "sourceVersion": item.source_version_snapshot, "sourceRecordId": item.source_record_id_snapshot,
                 "verificationStatus": item.verification_status_snapshot,
-                "licensingStatus": item.licensing_status_snapshot,
             } for item in sorted(prescription.items, key=lambda row: row.position)],
         }
 
@@ -251,7 +247,6 @@ class MedicationService:
                 source_name_snapshot=medication.source_name, source_reference_snapshot=medication.source_reference,
                 source_version_snapshot=medication.source_version, source_record_id_snapshot=medication.source_record_id,
                 verification_status_snapshot=medication.verification_status,
-                licensing_status_snapshot=medication.licensing_status,
             )
             db.add(item)
         db.commit()
@@ -281,7 +276,7 @@ class MedicationImportService:
     UPSERT_FIELDS = (
         "identity_key", "brand_name", "generic_name", "strength", "dosage_form", "route",
         "category", "manufacturer", "country", "source_version", "source_reference",
-        "verification_status", "licensing_status", "is_active",
+        "verification_status", "is_active",
     )
 
     def __init__(self, repository: MedicationRepository | None = None):

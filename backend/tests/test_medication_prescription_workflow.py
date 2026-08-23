@@ -48,7 +48,14 @@ class MedicationPrescriptionWorkflowTests(unittest.TestCase):
             "route": "Fixture route", "category": "Test only",
         }, headers=self.headers)
         self.assertEqual(200, response.status_code, response.text)
-        return response.json()
+        medication = response.json()
+        self.assertEqual({
+            "id", "brandName", "genericName", "strength", "dosageForm", "route",
+            "category", "manufacturer", "market", "catalogScope", "isCustom",
+            "verificationStatus", "sourceType", "sourceName", "sourceReference",
+            "sourceVersion", "sourceRecordId",
+        }, set(medication))
+        return medication
 
     @staticmethod
     def _item(medication):
@@ -128,10 +135,10 @@ class MedicationPrescriptionWorkflowTests(unittest.TestCase):
 
     def test_import_is_admin_only_idempotent_and_reports_rejections(self):
         payload = {
-            "source_name": "Synthetic Licensed Fixture", "source_version": "v1",
+            "source_name": "Synthetic Catalog Fixture", "source_version": "v1",
             "source_reference": "fixture://approved-test", "market": "Test Market",
             "country": "Testland", "input_format": "csv", "preview": False,
-            "content": "source_record_id,brand_name,strength,dosage_form,route,verification_status,licensing_status\nfake-1,Fixture,1 unit,Form,Route,verified,approved\nbad-1,Missing,,,Route,pending,pending\n",
+            "content": "source_record_id,brand_name,strength,dosage_form,route,verification_status\nfake-1,Fixture,1 unit,Form,Route,verified\nbad-1,Missing,,,Route,pending\n",
         }
         denied = self.client.post("/api/admin/medications/import", json=payload, headers=self.headers)
         self.assertEqual(403, denied.status_code)
@@ -164,15 +171,19 @@ class MedicationPrescriptionWorkflowTests(unittest.TestCase):
             ).one()
             self.assertEqual("global", imported.catalog_scope)
             self.assertEqual("structured_import", imported.source_type)
-            self.assertEqual("Synthetic Licensed Fixture", imported.source_name)
+            self.assertEqual("Synthetic Catalog Fixture", imported.source_name)
             self.assertEqual("fixture://approved-test", imported.source_reference)
             self.assertEqual("v1", imported.source_version)
             self.assertEqual("verified", imported.verification_status)
-            self.assertEqual("approved", imported.licensing_status)
             self.assertIsNotNone(imported.import_batch_id)
             self.assertIsNotNone(imported.imported_at)
         finally:
             db.close()
+
+        searchable = self.client.get("/api/medications?q=fixture", headers=self.headers)
+        self.assertEqual(200, searchable.status_code, searchable.text)
+        self.assertEqual("fake-1", searchable.json()[0]["sourceRecordId"])
+        self.assertEqual("verified", searchable.json()[0]["verificationStatus"])
 
         changed = dict(payload)
         changed["content"] = payload["content"].replace("Fixture,1 unit", "Fixture,2 units")
